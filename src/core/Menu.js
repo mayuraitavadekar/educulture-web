@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Redirect, Link } from "react-router-dom";
 import {
   Navbar,
   Nav,
@@ -10,7 +11,12 @@ import {
   Tabs,
 } from "react-bootstrap";
 
-import { login, register } from "./helper/coreapicalls";
+import {
+  login,
+  register,
+  authenticate,
+  isAuthenticated,
+} from "./helper/coreapicalls";
 
 import validator from "validator";
 
@@ -45,24 +51,98 @@ const Menu = () => {
 
   //TODO: LOGIN
   const Login = () => {
-    return (
-      <Form>
-        <Form.Group controlId="formBasicEmail">
-          <Form.Label>Email address</Form.Label>
-          <Form.Control type="email" placeholder="Enter email" />
-          <Form.Text className="text-muted">
-            We'll never share your email with anyone else.
-          </Form.Text>
-        </Form.Group>
+    const [values, setValues] = useState({
+      email: "",
+      password: "",
+      didRedirect: "",
+    });
 
-        <Form.Group controlId="formBasicPassword">
-          <Form.Label>Password</Form.Label>
-          <Form.Control type="password" placeholder="Password" />
-        </Form.Group>
-        <Button variant="primary" type="submit" className="text-center">
-          Submit
-        </Button>
-      </Form>
+    const { email, password, didRedirect } = values;
+
+    const handleChange = (name) => (event) => {
+      setValues({ ...values, error: "", [name]: event.target.value });
+    };
+
+    const onSubmit = (event) => {
+      event.preventDefault();
+      // validate email
+
+      if (
+        validator.isEmail(email, { domain_specific_validation: true }) !== true
+      ) {
+        alert("invalid email address.");
+      } else {
+        // validation is successfull, send the data to server side for signup
+        login({ email, password })
+          .then((data) => {
+            if (data.error) {
+              setModalShow(false);
+              alert(
+                "Error in Login. If you have not registered, please register."
+              );
+            } else {
+              authenticate(data, () => {
+                setValues({
+                  ...values,
+                  email: "",
+                  password: "",
+                  didRedirect: true,
+                });
+              });
+            }
+          })
+          .catch((err) => console.log("error in register."));
+      }
+    };
+
+    const loginForm = () => {
+      return (
+        <Form>
+          <Form.Group controlId="formBasicEmail">
+            <Form.Label>Email address</Form.Label>
+            <Form.Control
+              type="email"
+              placeholder="Enter email"
+              value={email}
+              onChange={handleChange("email")}
+            />
+            <Form.Text className="text-muted">
+              We'll never share your email with anyone else.
+            </Form.Text>
+          </Form.Group>
+
+          <Form.Group controlId="formBasicPassword">
+            <Form.Label>Password</Form.Label>
+            <Form.Control
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={handleChange("password")}
+            />
+          </Form.Group>
+          <Button
+            variant="primary"
+            type="submit"
+            onClick={onSubmit}
+            className="text-center"
+          >
+            Submit
+          </Button>
+        </Form>
+      );
+    };
+
+    const performRedirect = () => {
+      if (didRedirect) {
+        return <Redirect to="/" />;
+      }
+    };
+
+    return (
+      <div>
+        {loginForm()}
+        {performRedirect()}
+      </div>
     );
   };
 
@@ -72,10 +152,9 @@ const Menu = () => {
       name: "",
       email: "",
       mobile: "",
-      didRedirect: false,
     });
 
-    const { name, email, mobile, didRedirect } = values;
+    const { name, email, mobile } = values;
 
     const handleChange = (name) => (event) => {
       setValues({ ...values, error: "", [name]: event.target.value });
@@ -110,15 +189,19 @@ const Menu = () => {
         register({ name, email, mobile })
           .then((data) => {
             if (data.error) {
+              console.log("error!");
               setModalShow(false);
-              alert("error registration, please try after some time.");
+              alert(
+                "Error in Registration. If you have already registered, please login."
+              );
             } else {
+              setModalShow(false);
+              alert("Login code has been sent on your email id.");
               setValues({
                 ...values,
                 name: "",
                 email: "",
                 mobile: "",
-                didRedirect: true,
               });
             }
           })
@@ -162,7 +245,8 @@ const Menu = () => {
           <Form.Text style={{ color: "blue" }} className="mb-4">
             [After registration, please check your email account for the
             password. If you have not received password, wait for some time and
-            try again. Else contact us.]
+            try again. For any other error contact us on
+            educulture.edtech@gmail.com]
           </Form.Text>
 
           <Button variant="primary" onClick={onSubmit} type="submit">
@@ -172,26 +256,14 @@ const Menu = () => {
       );
     };
 
-    const performRedirect = () => {
-      setModalShow(false);
-      alert(
-        "registation successful. please check your mail to receive the password."
-      );
-    };
-
-    return (
-      <div>
-        {registerForm()}
-        {performRedirect()}
-      </div>
-    );
+    return <div>{registerForm()}</div>;
   };
 
   //TODO: menu return
   return (
     <div>
       <Navbar collapseOnSelect expand="lg" bg="light" variant="light  ">
-        <Navbar.Brand href="#home">
+        <Navbar.Brand href="/">
           <Image
             width="200px"
             src={require("../assets/images/logo.png")}
@@ -201,19 +273,32 @@ const Menu = () => {
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav>
-            <Nav.Link href="#deets">Our team</Nav.Link>
-            <Nav.Link eventKey={2} href="#memes">
+            <Nav.Link href="#deets"></Nav.Link>
+            <Nav.Link eventKey={2} as={Link} to="/availabletests">
               Online test series
             </Nav.Link>
-            <Nav.Link onClick={() => setModalShow(true)}>
-              Login/Register
-            </Nav.Link>
+            {!isAuthenticated() && (
+              <Nav.Link eventKey={3} onClick={() => setModalShow(true)}>
+                Login/Register
+              </Nav.Link>
+            )}
           </Nav>
           <Nav className="ml-auto">
-            <Nav.Link href="#memes">User Account</Nav.Link>
-            <Nav.Link eventKey={2} href="#memes">
-              Log out
-            </Nav.Link>
+            {isAuthenticated() && (
+              <Nav.Link href="#memes">User Account</Nav.Link>
+            )}
+
+            {isAuthenticated() && isAuthenticated().user.role === 1 && (
+              <Nav.Link eventKey={2} href="#memes">
+                Admin Dashboard
+              </Nav.Link>
+            )}
+
+            {isAuthenticated() && (
+              <Nav.Link eventKey={3} href="#memes">
+                Log out
+              </Nav.Link>
+            )}
           </Nav>
         </Navbar.Collapse>
       </Navbar>

@@ -1,7 +1,7 @@
 import { API } from "../../backend";
 
 export const register = (userData) => {
-  return fetch(`${API / register}`, {
+  return fetch(`${API}/register`, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -16,7 +16,7 @@ export const register = (userData) => {
 };
 
 export const login = (userData) => {
-  return fetch(`${API / login}`, {
+  return fetch(`${API}/login`, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -30,9 +30,18 @@ export const login = (userData) => {
     .catch((err) => console.log("error in fetch login."));
 };
 
+export const logout = (next) => {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("userData");
+    next();
+  }
+};
+
 export const authenticate = (userData, next) => {
-  localStorage.setItem("userData", userData);
-  next();
+  if (typeof window !== "undefined") {
+    localStorage.setItem("userData", userData);
+    next();
+  }
 };
 
 export const isAuthenticated = () => {
