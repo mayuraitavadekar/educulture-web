@@ -14,8 +14,9 @@ import {
 import {
   login,
   register,
-  authenticate,
   isAuthenticated,
+  authenticate,
+  logout,
 } from "./helper/coreapicalls";
 
 import validator from "validator";
@@ -81,6 +82,7 @@ const Menu = () => {
                 "Error in Login. If you have not registered, please register."
               );
             } else {
+              setModalShow(false);
               authenticate(data, () => {
                 setValues({
                   ...values,
@@ -89,9 +91,17 @@ const Menu = () => {
                   didRedirect: true,
                 });
               });
+
+              window.location.reload(false);
             }
           })
-          .catch((err) => console.log("error in register."));
+          .catch((err) => console.log("error in login"));
+      }
+    };
+
+    const performRedirect = () => {
+      if (didRedirect) {
+        return <Redirect to="/" />;
       }
     };
 
@@ -130,12 +140,6 @@ const Menu = () => {
           </Button>
         </Form>
       );
-    };
-
-    const performRedirect = () => {
-      if (didRedirect) {
-        return <Redirect to="/" />;
-      }
     };
 
     return (
@@ -222,7 +226,7 @@ const Menu = () => {
             />
           </Form.Group>
 
-          <Form.Group controlId="formBasicEmail">
+          <Form.Group controlId="">
             <Form.Label>Email Address</Form.Label>
             <Form.Control
               type="text"
@@ -232,7 +236,7 @@ const Menu = () => {
             />
           </Form.Group>
 
-          <Form.Group controlId="formBasicEmail">
+          <Form.Group controlId="">
             <Form.Label>Mobile Number</Form.Label>
             <Form.Control
               type="text"
@@ -284,18 +288,28 @@ const Menu = () => {
             )}
           </Nav>
           <Nav className="ml-auto">
-            {isAuthenticated() && (
-              <Nav.Link href="#memes">User Account</Nav.Link>
+            {isAuthenticated() && isAuthenticated().user.role !== 1 && (
+              <Nav.Link as={Link} to="/">
+                User Account
+              </Nav.Link>
             )}
 
             {isAuthenticated() && isAuthenticated().user.role === 1 && (
-              <Nav.Link eventKey={2} href="#memes">
+              <Nav.Link eventKey={2} as={Link} to="/admin">
                 Admin Dashboard
               </Nav.Link>
             )}
 
             {isAuthenticated() && (
-              <Nav.Link eventKey={3} href="#memes">
+              <Nav.Link
+                eventKey={3}
+                as={Link}
+                onClick={() => {
+                  logout(() => {
+                    window.location.reload(false);
+                  });
+                }}
+              >
                 Log out
               </Nav.Link>
             )}

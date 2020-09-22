@@ -38,16 +38,14 @@ export const logout = (next) => {
 };
 
 export const authenticate = (userData, next) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("userData", userData);
-    next();
-  }
+  localStorage.setItem("userData", JSON.stringify(userData));
+  next();
 };
 
 export const isAuthenticated = () => {
   if (localStorage.getItem("userData")) {
-    // user data is present
-    return localStorage.getItem("userData");
+    let data = JSON.parse(localStorage.getItem("userData"));
+    return data;
   } else {
     // user data is not present
     return false;
