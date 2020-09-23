@@ -15,8 +15,8 @@ const AdminNavbar = ({ history }) => {
           <Nav.Item>
             <Nav.Link
               as={Link}
-              active={currentTab(history, "/admin/create/category")}
-              to="/admin/create/category"
+              active={currentTab(history, "/admin/create/test")}
+              to="/admin/create/test"
             >
               create new test
             </Nav.Link>
@@ -26,8 +26,8 @@ const AdminNavbar = ({ history }) => {
           <Nav.Item>
             <Nav.Link
               as={Link}
-              active={currentTab(history, "/admin/categories")}
-              to="/admin/categories"
+              active={currentTab(history, "/admin/all/tests")}
+              to="/admin/all/tests"
             >
               all tests
             </Nav.Link>

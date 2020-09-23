@@ -309,6 +309,7 @@ const Menu = () => {
                     window.location.reload(false);
                   });
                 }}
+                to="/"
               >
                 Log out
               </Nav.Link>
